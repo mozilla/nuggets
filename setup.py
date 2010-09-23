@@ -1,9 +1,15 @@
+import fnmatch
+import os
 from distutils.core import setup
+
+files = os.listdir(os.path.dirname(os.path.realpath(__file__)))
+py_modules = [os.path.splitext(f)[0]
+              for f in fnmatch.filter(files, '*.py') if f != 'setup.py']
 
 setup(
     name='nuggets',
     version='0.1',
-    py_modules="celeryutils csrf_context dictconfig".split(),
+    py_modules=py_modules,
     description="Little utilities that don't deserve a package",
     long_description=open('README.rst').read(),
     author='Jeff Balogh',
