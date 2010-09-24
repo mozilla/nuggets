@@ -15,6 +15,7 @@ adds the signal to a queue processed on a background thread.  The synchronous
 ``Signal.send`` is still available as ``Signal.sync_send``.
 
 """
+import atexit
 import functools
 import logging
 import Queue
@@ -56,8 +57,10 @@ def listener():
                 Signal.sync_send(self, sender, **kw)
             except Exception:
                 log.error('Error calling signal.', exc_info=True)
-        except:
-            log.critical('Uncaught error.', exc_info=True)
+        except Exception:
+            # Weird things happen during interpreter shutdown.
+            if log:
+                log.critical('Uncaught error.', exc_info=True)
 
 
 def start_the_machine():
@@ -74,9 +77,10 @@ def start_the_machine():
     _started = True
 
 
+@atexit.register
 def stop_the_machine():
     global _started
     if _started:
-        Signal.send = Signal.sync_send
         _signal_queue.put_nowait((_sentinel, None, None))
+        Signal.send = Signal.sync_send
         _started = False
