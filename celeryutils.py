@@ -6,6 +6,7 @@ import functools
 
 import celery.decorators
 import celery.task
+from django.db import connections, transaction
 
 
 log = logging.getLogger('z.celery')
@@ -22,10 +23,19 @@ class Task(celery.task.Task):
 
 
 def task(*args, **kw):
-    # Force usage of our Task subclass.
-    kw['base'] = Task
-    wrapper = celery.decorators.task(**kw)
+    # Add yet another wrapper for committing transactions after the task.
+    def decorate(fun):
+        @functools.wraps(fun)
+        def wrapped(*args, **kw):
+            try:
+                return fun(*args, **kw)
+            finally:
+                for db in connections:
+                    transaction.commit_unless_managed(using=db)
+        # Force usage of our Task subclass.
+        kw['base'] = Task
+        return celery.decorators.task(**kw)(wrapped)
     if args:
-        return wrapper(*args)
+        return decorate(*args)
     else:
-        return wrapper
+        return decorate
