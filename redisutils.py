@@ -46,7 +46,9 @@ def reset_redis(cxn):
 
 class MockRedis(object):
     """A fake redis we can use for testing."""
-    kv = {}
+
+    def __init__(self):
+        self.kv = {}
 
     def pipeline(self, **kw):
         return self
