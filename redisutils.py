@@ -33,7 +33,15 @@ if not connections:  # don't set this repeatedly
 
 
 def mock_redis():
-    connections['master'] = MockRedis()
+    ret = dict(connections)
+    for key in connections:
+        connections[key] = MockRedis()
+    return ret
+
+
+def reset_redis(cxn):
+    for key, value in cxn.items():
+        connections[key] = value
 
 
 class MockRedis(object):
