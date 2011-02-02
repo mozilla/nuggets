@@ -31,20 +31,18 @@ def conditional_escape(html):
     if hasattr(html, '__html__'):
         return html.__html__()
     else:
-        return escape(html)
+        return django.utils.html.escape(html)
 
 
 # Django uses SafeData to mark a string that has already been escaped or
-# otherwise deemed safe.
-class _SafeData(object):
+# otherwise deemed safe. This __html__ method lets Jinja know about that too.
+def __html__(self):
+    """
+    Returns the html representation of a string.
 
-    def __html__(self):
-        """
-        Returns the html representation of a string.
-
-        Allows interoperability with other template engines.
-        """
-        return self
+    Allows interoperability with other template engines.
+    """
+    return self
 
 
 # Django uses StrAndUnicode for classes like Form, BoundField, Widget which
@@ -59,7 +57,7 @@ class SafeStrAndUnicode(django.utils.encoding.StrAndUnicode):
 
 def monkeypatch():
     django.utils.html.conditional_escape = conditional_escape
-    django.utils.safestring.SafeData.__html__ = _SafeData.__html__
+    django.utils.safestring.SafeData.__html__ = __html__
 
     # forms imports have to come after we patch conditional_escape.
     from django.forms import forms, formsets, util, widgets
@@ -79,6 +77,7 @@ def monkeypatch():
 
     for cls in classes:
         bases = list(cls.__bases__)
-        idx = bases.index(django.utils.encoding.StrAndUnicode)
-        bases[idx] = SafeStrAndUnicode
-        cls.__bases__ = tuple(bases)
+        if django.utils.encoding.StrAndUnicode in bases:
+            idx = bases.index(django.utils.encoding.StrAndUnicode)
+            bases[idx] = SafeStrAndUnicode
+            cls.__bases__ = tuple(bases)
