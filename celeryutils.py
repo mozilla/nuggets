@@ -1,6 +1,7 @@
 """
 Wrapper for celery.task.Task that catches and logs errors.
 """
+import itertools
 import logging
 import functools
 
