@@ -79,3 +79,7 @@ class MockRedis(object):
             del self.kv[key]
             return True
         return False
+
+    def hmget(self, name, keys):
+        db = self.kv.get(name, {})
+        return [db.get(key) for key in keys]
