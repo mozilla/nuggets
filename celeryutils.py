@@ -28,11 +28,24 @@ def task(*args, **kw):
     def decorate(fun):
         @functools.wraps(fun)
         def wrapped(*args, **kw):
+            was_exception = False
             try:
                 return fun(*args, **kw)
+            except:
+                was_exception = True
+                raise
             finally:
-                for db in connections:
-                    transaction.commit_unless_managed(using=db)
+                try:
+                    for db in connections:
+                        transaction.commit_unless_managed(using=db)
+                except:
+                    if was_exception:
+                        # We want to see the original exception so let's
+                        # just log the one after that.
+                        log.exception(
+                            'While trying to recover from an exception')
+                    else:
+                        raise
         # Force usage of our Task subclass.
         kw['base'] = Task
         return celery.decorators.task(**kw)(wrapped)
