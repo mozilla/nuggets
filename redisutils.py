@@ -83,3 +83,10 @@ class MockRedis(object):
     def hmget(self, name, keys):
         db = self.kv.get(name, {})
         return [db.get(key) for key in keys]
+
+    def hmset(self, name, dict_):
+        db = self.kv.setdefault(name, {})
+        db.update(dict_)
+
+    def hgetall(self, name):
+        return self.kv.get(name, {})
