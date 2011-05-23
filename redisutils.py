@@ -62,6 +62,18 @@ class MockRedis(object):
     def set(self, key, val):
         self.kv[key] = val
 
+    def setnx(self, key, val):
+        if key not in self.kv:
+            self.set(key, val)
+            return True
+        return False
+
+    def delete(self, key):
+        if key in self.kv:
+            del self.kv[key]
+            return True
+        return False
+
     def sadd(self, key, val):
         v = self.kv.setdefault(key, set())
         if isinstance(v, set):
@@ -74,12 +86,6 @@ class MockRedis(object):
         if isinstance(v, set):
             return v
 
-    def delete(self, key):
-        if key in self.kv:
-            del self.kv[key]
-            return True
-        return False
-
     def hmget(self, name, keys):
         db = self.kv.get(name, {})
         return [db.get(key) for key in keys]
@@ -90,3 +96,17 @@ class MockRedis(object):
 
     def hgetall(self, name):
         return self.kv.get(name, {})
+
+    def hset(self, name, key, value):
+        self.hmset(name, {key: value})
+
+    def hget(self, name, key):
+        return self.kv.get(name, {}).get(key)
+
+    def hdel(self, name, key):
+        db = self.kv.get(name, {})
+        if key in db:
+            del db[key]
+
+    def hlen(self, name):
+        return len(self.kv.get(name, {}))
