@@ -4,6 +4,7 @@ Wrapper for celery.task.Task that catches and logs errors.
 import itertools
 import logging
 import functools
+import sys
 
 import celery.decorators
 import celery.task
@@ -33,6 +34,15 @@ def task(*args, **kw):
                 return fun(*args, **kw)
             except:
                 was_exception = True
+                # Log the exception so we can actually see it in procuction.
+                # When celery is upgraded to 2.2, this can be done more
+                # gracefully with a signal.
+                # See: http://groups.google.com/group/celery-users/
+                #      browse_thread/thread/95bdffe5a0057ac0?pli=1
+                exc_info = sys.exc_info()
+                log.error(u'Celery TASK exception: %s: %s'
+                          % (exc_info[1].__class__.__name__, exc_info[1]),
+                          exc_info=exc_info)
                 raise
             finally:
                 try:
