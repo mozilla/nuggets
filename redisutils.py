@@ -44,11 +44,25 @@ def reset_redis(cxn):
         connections[key] = value
 
 
+class StringDict(dict):
+    """A dict that converts all keys to strings automatically (like redis)."""
+
+    def __setitem__(self, key, value):
+        if not isinstance(key, basestring):
+            key = unicode(key)
+        super(StringDict, self).__setitem__(key, value)
+
+    def __getitem__(self, key):
+        if not isinstance(key, basestring):
+            key = unicode(key)
+        super(StringDict, self).__getitem__(key)
+
+
 class MockRedis(object):
     """A fake redis we can use for testing."""
 
     def __init__(self):
-        self.kv = {}
+        self.kv = StringDict()
 
     def pipeline(self, **kw):
         return self
@@ -87,26 +101,27 @@ class MockRedis(object):
             return v
 
     def hmget(self, name, keys):
-        db = self.kv.get(name, {})
+        db = self.kv.get(name, StringDict())
         return [db.get(key) for key in keys]
 
     def hmset(self, name, dict_):
-        db = self.kv.setdefault(name, {})
+        db = self.kv.setdefault(name, StringDict())
         db.update(dict_)
 
     def hgetall(self, name):
-        return self.kv.get(name, {})
+        return self.kv.get(name, StringDict())
 
     def hset(self, name, key, value):
-        self.hmset(name, {key: value})
+        db = self.kv.setdefault(name, StringDict())
+        db[key] = value
 
     def hget(self, name, key):
-        return self.kv.get(name, {}).get(key)
+        return self.kv.get(name, StringDict()).get(key)
 
     def hdel(self, name, key):
-        db = self.kv.get(name, {})
+        db = self.kv.get(name, StringDict())
         if key in db:
             del db[key]
 
     def hlen(self, name):
-        return len(self.kv.get(name, {}))
+        return len(self.kv.get(name, StringDict()))
