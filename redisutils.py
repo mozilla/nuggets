@@ -129,3 +129,8 @@ class MockRedis(object):
 
     def hlen(self, name):
         return len(self.kv.get(name, StringDict()))
+
+    def hincrby(self, name, key, amount=1):
+        db = self.kv.get(name, StringDict())
+        val = db.setdefault(key, 0)
+        db[key] = val + amount
