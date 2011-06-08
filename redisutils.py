@@ -95,6 +95,10 @@ class MockRedis(object):
             return True
         return False
 
+    def srem(self, key, val):
+        v = self.kv.get(key, set())
+        v.discard(val)
+
     def smembers(self, key):
         v = self.kv.get(key, set())
         if isinstance(v, set):
