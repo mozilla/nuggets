@@ -52,7 +52,7 @@ class GraphiteClient(object):
 
     def sendall(self, *items):
         ts = time.time()
-        prefix = '%s.' % self.prefix if self.prefix else ''
+        prefix = ('%s.' % self.prefix) if self.prefix else ''
         msg = []
         for item in items:
             if len(item) == 2:
