@@ -119,6 +119,13 @@ class MockRedis(object):
         db = self.kv.setdefault(name, StringDict())
         db[key] = value
 
+    def hsetnx(self, name, key, value):
+        db = self.kv.setdefault(name, StringDict())
+        if key not in db:
+            db[key] = value
+            return True
+        return False
+
     def hget(self, name, key):
         return self.kv.get(name, StringDict()).get(key)
 
