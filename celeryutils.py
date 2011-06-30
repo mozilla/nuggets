@@ -22,6 +22,7 @@ class Task(celery.task.Task):
             return super(Task, self).apply_async(args, kwargs, **options)
         except Exception, e:
             log.error('CELERY FAIL: %s' % e)
+            raise
 
 
 def task(*args, **kw):
