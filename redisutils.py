@@ -73,6 +73,11 @@ class MockRedis(object):
     def get(self, key):
         return self.kv.get(key)
 
+    def incr(self, key):
+        bump = (self.get(key) or 0) + 1
+        self.set(key, bump)
+        return bump
+
     def set(self, key, val):
         self.kv[key] = val
 
