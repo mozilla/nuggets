@@ -64,7 +64,7 @@ class GraphiteClient(object):
         self.connect()
         try:
             self.sock.sendall(''.join(msg))
-        except socket.error:
+        except socket.error, e:
             self.disconnect()
             raise self.socket_error(e)
 
