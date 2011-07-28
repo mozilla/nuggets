@@ -64,6 +64,9 @@ class MockRedis(object):
     def __init__(self):
         self.kv = StringDict()
 
+    def flushall(self):
+        self.kv.clear()
+
     def pipeline(self, **kw):
         return self
 
@@ -108,6 +111,10 @@ class MockRedis(object):
         v = self.kv.get(key, set())
         if isinstance(v, set):
             return v
+
+    def sinter(self, keys):
+        sets = [self.kv.get(key, set()) for key in keys]
+        return reduce(lambda x, y: x & y, sets)
 
     def hmget(self, name, keys):
         db = self.kv.get(name, StringDict())
