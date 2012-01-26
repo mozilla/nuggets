@@ -165,4 +165,14 @@ class MockRedis(object):
     def rpush(self, name, *vals):
         list_ = self.kv.get(name, [])
         list_.extend(vals)
+        self.kv[name] = list_
         return len(list_)
+
+    def llen(self, name):
+        return len(self.kv.get(name, []))
+
+    def lindex(self, name, index):
+        try:
+            return self.kv.get(name, [])[index]
+        except IndexError:
+            return None
