@@ -6,8 +6,8 @@ import logging
 import functools
 import sys
 
-import celery.decorators
 import celery.task
+from celery.signals import task_failure
 from django.db import connections, transaction
 
 
@@ -33,18 +33,6 @@ def task(*args, **kw):
             was_exception = False
             try:
                 return fun(*args, **kw)
-            except:
-                was_exception = True
-                # Log the exception so we can actually see it in procuction.
-                # When celery is upgraded to 2.2, this can be done more
-                # gracefully with a signal.
-                # See: http://groups.google.com/group/celery-users/
-                #      browse_thread/thread/95bdffe5a0057ac0?pli=1
-                exc_info = sys.exc_info()
-                log.error(u'Celery TASK exception: %s: %s'
-                          % (exc_info[1].__class__.__name__, exc_info[1]),
-                          exc_info=exc_info)
-                raise
             finally:
                 try:
                     for db in connections:
@@ -59,11 +47,29 @@ def task(*args, **kw):
                         raise
         # Force usage of our Task subclass.
         kw['base'] = Task
-        return celery.decorators.task(**kw)(wrapped)
+        return celery.task.task(**kw)(wrapped)
     if args:
         return decorate(*args)
     else:
         return decorate
+
+
+@task_failure.connect
+def process_failure_signal(exception, traceback, sender, task_id,
+                           signal, args, kwargs, einfo, **kw):
+    exc_info = (type(exception), exception, traceback)
+    log.error(
+        u'Celery TASK exception: %s: %s'
+        % (exc_info[1].__class__.__name__, exc_info[1]),
+        exc_info=exc_info,
+        extra={'data': {
+                'task_id': task_id,
+                'sender': sender,
+                'args': args,
+                'kwargs': kwargs
+                }
+               }
+        )
 
 
 def chunked(seq, n):
