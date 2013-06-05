@@ -47,6 +47,9 @@ def task(*args, **kw):
                         raise
         # Force usage of our Task subclass.
         kw['base'] = Task
+        # Default to ignoring results.
+        if 'ignore_result' not in kw:
+            kw['ignore_result'] = True
         return celery.task.task(**kw)(wrapped)
     if args:
         return decorate(*args)
@@ -62,14 +65,14 @@ def process_failure_signal(exception, traceback, sender, task_id,
         u'Celery TASK exception: %s: %s'
         % (exc_info[1].__class__.__name__, exc_info[1]),
         exc_info=exc_info,
-        extra={'data': {
+        extra={
+            'data': {
                 'task_id': task_id,
                 'sender': sender,
                 'args': args,
                 'kwargs': kwargs
-                }
-               }
-        )
+            }
+        })
 
 
 def chunked(seq, n):
