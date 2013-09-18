@@ -39,3 +39,11 @@ class JSONField(models.TextField):
         value = json.dumps(value, cls=DjangoJSONEncoder, separators=(',', ':'))
         return super(JSONField, self).get_db_prep_save(value, *args, **kwargs)
 
+
+# South support.
+try:
+    from south.modelsinspector import add_introspection_rules
+except ImportError:
+    pass
+else:
+    add_introspection_rules([], ['^json_field\.JSONField'])
