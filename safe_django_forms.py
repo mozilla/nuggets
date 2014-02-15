@@ -76,8 +76,4 @@ def monkeypatch():
     )
 
     for cls in classes:
-        bases = list(cls.__bases__)
-        if django.utils.encoding.StrAndUnicode in bases:
-            idx = bases.index(django.utils.encoding.StrAndUnicode)
-            bases[idx] = SafeStrAndUnicode
-            cls.__bases__ = tuple(bases)
+        cls.__html__ = lambda self: unicode(self)

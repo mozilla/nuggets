@@ -1,5 +1,6 @@
+import json
+
 from django.db import models
-from django.utils import simplejson as json
 from django.core.serializers.json import DjangoJSONEncoder
 
 
