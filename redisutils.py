@@ -73,7 +73,7 @@ class MockRedis(object):
     def execute(self):
         pass
 
-    ## Keys.
+    # Keys.
 
     def get(self, key):
         return self.kv.get(key)
@@ -98,7 +98,7 @@ class MockRedis(object):
             return True
         return False
 
-    ## Sets.
+    # Sets.
 
     def sadd(self, key, val):
         v = self.kv.setdefault(key, set())
@@ -120,7 +120,7 @@ class MockRedis(object):
         sets = [self.kv.get(key, set()) for key in keys]
         return reduce(lambda x, y: x & y, sets)
 
-    ## Hashes.
+    # Hashes.
 
     def hmget(self, name, keys):
         db = self.kv.get(name, StringDict())
@@ -160,7 +160,7 @@ class MockRedis(object):
         val = db.setdefault(key, 0)
         db[key] = val + amount
 
-    ## Lists.
+    # Lists.
 
     def rpush(self, name, *vals):
         list_ = self.kv.get(name, [])

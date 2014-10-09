@@ -1,6 +1,6 @@
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.utils import simplejson as json
-from django.core.serializers.json import DjangoJSONEncoder
 
 
 # https://bitbucket.org/offline/django-annoying

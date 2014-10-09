@@ -1,10 +1,9 @@
 """
 Wrapper for celery.task.Task that catches and logs errors.
 """
+import functools
 import itertools
 import logging
-import functools
-import sys
 
 import celery.task
 from celery.signals import task_failure
@@ -93,4 +92,3 @@ def chunked(seq, n):
         if not rv:
             break
         yield rv
-
