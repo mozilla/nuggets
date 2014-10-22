@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.cache import parse_backend_uri
+from django.core.exceptions import ImproperlyConfigured
 
 try:
     import redis as redislib
@@ -10,24 +10,18 @@ connections = {}
 
 if not connections:  # don't set this repeatedly
     for alias, backend in settings.REDIS_BACKENDS.items():
-        _, server, params = parse_backend_uri(backend)
 
-        try:
-            socket_timeout = float(params.pop('socket_timeout'))
-        except (KeyError, ValueError):
-            socket_timeout = None
-        password = params.pop('password', None)
-        if ':' in server:
-            host, port = server.split(':')
-            try:
-                port = int(port)
-            except (ValueError, TypeError):
-                port = 6379
-        else:
-            host = 'localhost'
-            port = 6379
+        if not isinstance(backend, dict):
+            raise ImproperlyConfigured(
+                'REDIS_BACKENDS is now required to be a dictionary.')
 
-        connections[alias] = redislib.Redis(host=host, port=port, db=0,
+        host = backend.get('HOST')
+        port = backend.get('PORT')
+        db = backend.get('DB', 0)
+        password = backend.get('PASSWORD', None)
+        socket_timeout = backend.get('OPTIONS', {}).get('socket_timeout')
+
+        connections[alias] = redislib.Redis(host=host, port=port, db=db,
                                             password=password,
                                             socket_timeout=socket_timeout)
 
@@ -73,7 +67,7 @@ class MockRedis(object):
     def execute(self):
         pass
 
-    ## Keys.
+    # Keys.
 
     def get(self, key):
         return self.kv.get(key)
@@ -98,7 +92,7 @@ class MockRedis(object):
             return True
         return False
 
-    ## Sets.
+    # Sets.
 
     def sadd(self, key, val):
         v = self.kv.setdefault(key, set())
@@ -120,7 +114,7 @@ class MockRedis(object):
         sets = [self.kv.get(key, set()) for key in keys]
         return reduce(lambda x, y: x & y, sets)
 
-    ## Hashes.
+    # Hashes.
 
     def hmget(self, name, keys):
         db = self.kv.get(name, StringDict())
@@ -160,7 +154,7 @@ class MockRedis(object):
         val = db.setdefault(key, 0)
         db[key] = val + amount
 
-    ## Lists.
+    # Lists.
 
     def rpush(self, name, *vals):
         list_ = self.kv.get(name, [])

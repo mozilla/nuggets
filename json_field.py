@@ -1,6 +1,10 @@
-from django.db import models
-from django.utils import simplejson as json
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db import models
+
+try:
+    import json  # json module added in Python 2.6.
+except ImportError:
+    from django.utils import simplejson as json
 
 
 # https://bitbucket.org/offline/django-annoying
