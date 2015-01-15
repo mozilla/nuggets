@@ -67,6 +67,9 @@ class MockRedis(object):
     def execute(self):
         pass
 
+    def info(self):
+        pass
+
     # Keys.
 
     def get(self, key):
